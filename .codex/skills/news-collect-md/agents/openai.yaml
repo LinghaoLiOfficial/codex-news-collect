@@ -1,0 +1,6 @@
+interface:
+  display_name: "新闻采集到 Markdown"
+  short_description: "从单站点抓取可复现的近期主题新闻，未达最大数量时自动补采并输出可审计结果"
+  default_prompt: "Use $news-collect-md to collect up to the per-site maximum with Google Chrome only: run query fallback chain, open result pages (not snippets), validate completion fields, backfill until count target or exhaustion, save auditable Markdown under output/, and convert to reviewed DOCX."
+policy:
+  allow_implicit_invocation: true
