@@ -58,29 +58,30 @@ For stricter collection decisions and extraction consistency, use:
 
 1. Open `@chrome` (Google Chrome) and visit `目标媒体网站` exactly as provided in the current active tab.
 2. Do not rewrite `目标媒体网站` into `site:` search syntax or otherwise shorten the URL.
-3. Run a state loop until completion or exhaustion:
+3. When typing any URL in the address bar, always replace the full existing URL (focus address bar, select all, then type the new URL and press `Enter`); never append to existing text.
+4. Run a state loop until completion or exhaustion:
    - `search -> collect_candidates -> dedup -> open_extract -> validate -> count`
-4. Search with the Query Fallback Chain.
+5. Search with the Query Fallback Chain.
    - First check whether the homepage already exposes more than `最大数量` clearly relevant high-news items.
    - If yes, skip search and collect from the homepage directly.
-5. For each query round:
+6. For each query round:
    - collect candidate links from result page 1, then page 2+ if needed
    - deduplicate by canonical URL (remove tracking params)
    - open candidate article pages in Chrome by reusing the current active tab only (no new tab)
-6. Filter or verify each candidate against `时间范围`.
-7. Validate article against `references/collection-checklist.md` `Completion Definition`.
-8. Continue query/page rounds until:
+7. Filter or verify each candidate against `时间范围`.
+8. Validate article against `references/collection-checklist.md` `Completion Definition`.
+9. Continue query/page rounds until:
    - counted items >= `最大数量`, or
    - all query rounds + page rounds exhausted.
    - Never start another target site from this worker before this site reaches a final status.
-9. Write a new local `.md` file under `output/` that includes:
+10. Write a new local `.md` file under `output/` that includes:
    - source site and run parameters
    - per-item metadata and content type
    - article title, publication date, and link
    - paragraph-by-paragraph excerpts for each fulltext article
    - `未收录原因` summary when counted items < `最大数量`
-10. Convert Markdown to `.docx` by invoking global `$Documents` skill workflow (create/edit + render-and-verify loop) instead of ad-hoc conversion.
-11. Keep output focused on selected articles only.
+11. Convert Markdown to `.docx` by invoking global `$Documents` skill workflow (create/edit + render-and-verify loop) instead of ad-hoc conversion.
+12. Keep output focused on selected articles only.
 
 ## Universal Hard Constraints (Apply to Any Target Site)
 
@@ -95,19 +96,22 @@ For stricter collection decisions and extraction consistency, use:
 - If the target site has no visible search input, homepage-first collection is mandatory (treat homepage as search result page before URL-pattern search fallback).
 - URL query parameter search is fallback only when on-page input is unavailable.
 
-4. Paywall fallback is mandatory:
+4. Address bar overwrite is mandatory:
+- When navigating via typed URL, overwrite the entire current address-bar value before pressing `Enter`; never append URL text.
+
+5. Paywall fallback is mandatory:
 - If fulltext is blocked but metadata is visible, still record `title + publication date + URL` as `content_type=paywall_meta`.
 
-5. Content-type-aware counting:
+6. Content-type-aware counting:
 - `fulltext` needs paragraph extraction and paragraph count gate.
 - `fulltext` needs paragraph extraction and paragraph count `>= 3`.
 - `video`/`brief` may be included only with explicit type label and complete metadata.
 
-6. Dedup and backfill are mandatory:
+7. Dedup and backfill are mandatory:
 - Deduplicate by canonical URL.
 - Keep backfilling until reaching `最大数量` or exhausting all fallback attempts.
 
-7. Item-level completion gate is mandatory:
+8. Item-level completion gate is mandatory:
 - Do not count an item before extraction is complete for that item.
 - For `fulltext`, completion requires paragraph extraction (`paragraph_count >= 1`) and stored excerpts.
 - For `video|brief|paywall_meta`, completion requires complete metadata fields and explicit `content_type`.
