@@ -8,7 +8,7 @@ description: Collect recent news articles from one target media site with Google
 ## Overview
 
 Use this skill to build a reproducible Markdown digest from one media site search.
-The target behavior is stable collection with a hard completion gate: for each site run, collect up to `最大数量` items with verifiable metadata and content evidence.
+Collect up to `最大数量` items with verifiable metadata and content evidence.
 Within a site run, enforce strict item-serial extraction: finish current article extraction and validation before opening the next candidate article.
 
 ## Inputs
@@ -34,11 +34,18 @@ Execution requirements:
 - If search input is unavailable, use the site's search URL pattern as fallback.
 - Do not stop after one query if collected count is below `最大数量`.
 
+Homepage shortcut:
+- Before starting the Query Fallback Chain, inspect the homepage for direct-news candidate cards.
+- If the homepage already shows more than `最大数量` clearly relevant high-news items, skip the search/query step entirely and proceed directly to homepage candidate collection, dedup, open_extract, validate, and count.
+- "Clearly relevant" still requires direct relevance to `主题` in title or lead text and a usable publication date.
+
 ## Mandatory Browser Constraint
 
 Enforce the following constraint for the entire workflow:
 - Use `@chrome` (Google Chrome) only.
 - Do not use any other browser.
+- Do not open a new tab.
+- Always operate on the current active tab.
 - Do not switch to web search tools, direct HTTP fetch tools, or non-Chrome page-reading fallbacks for article retrieval.
 - If `@chrome` (Google Chrome) is unavailable or blocked, stop and report that the task cannot proceed under the Chrome-only requirement.
 
@@ -49,15 +56,17 @@ For stricter collection decisions and extraction consistency, use:
 
 ## Workflow
 
-1. Open `@chrome` (Google Chrome) and visit `目标媒体网站` exactly as provided.
+1. Open `@chrome` (Google Chrome) and visit `目标媒体网站` exactly as provided in the current active tab.
 2. Do not rewrite `目标媒体网站` into `site:` search syntax or otherwise shorten the URL.
 3. Run a state loop until completion or exhaustion:
    - `search -> collect_candidates -> dedup -> open_extract -> validate -> count`
 4. Search with the Query Fallback Chain.
+   - First check whether the homepage already exposes more than `最大数量` clearly relevant high-news items.
+   - If yes, skip search and collect from the homepage directly.
 5. For each query round:
    - collect candidate links from result page 1, then page 2+ if needed
    - deduplicate by canonical URL (remove tracking params)
-   - open candidate article pages in Chrome
+   - open candidate article pages in Chrome by reusing the current active tab only (no new tab)
 6. Filter or verify each candidate against `时间范围`.
 7. Validate article against `references/collection-checklist.md` `Completion Definition`.
 8. Continue query/page rounds until:
@@ -91,6 +100,7 @@ For stricter collection decisions and extraction consistency, use:
 
 5. Content-type-aware counting:
 - `fulltext` needs paragraph extraction and paragraph count gate.
+- `fulltext` needs paragraph extraction and paragraph count `>= 3`.
 - `video`/`brief` may be included only with explicit type label and complete metadata.
 
 6. Dedup and backfill are mandatory:
@@ -116,6 +126,7 @@ For stricter collection decisions and extraction consistency, use:
 ## Output Rules
 
 - Use `@chrome` (Google Chrome) only for navigation and reading.
+- Reuse the current active tab for all navigation; never create or switch to a newly opened tab.
 - Do not rely on other browsers for page collection.
 - Do not substitute non-browser extraction paths for article content.
 - Preserve the original `目标媒体网站` as the access URL in logs and output; do not replace it with `site:` syntax.
