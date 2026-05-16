@@ -1,6 +1,0 @@
-interface:
-  display_name: "新闻采集 Markdown"
-  short_description: "用 Chrome 从单站点采集近期主题新闻，支持首页预检、补采、去重与可审计输出"
-  default_prompt: "Use $news-collect-md to collect up to the per-site maximum with Google Chrome only: precheck the homepage for directly relevant candidate cards, skip search when the homepage already exceeds the maximum, otherwise run the query fallback chain, open result pages (not snippets), validate completion fields, backfill until the count target or exhaustion, and save auditable Markdown plus reviewed DOCX under output/."
-policy:
-  allow_implicit_invocation: true
